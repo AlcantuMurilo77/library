@@ -4,20 +4,25 @@ import datetime
 import db 
 biblioteca = Biblioteca()
 import utils
+from flask import Flask, request, jsonify
 
-def cadastraUsuario():  
-    # Recebe o nome do usuário e valida
-    nome = utils.solicitar_input_com_confirmacao(
-        "Qual o nome completo do novo usuário?: ",
-        tipo="string",
-        validacao=utils.validar_nome_usuario
-    )
-    
-    if not nome:
-        print("Erro: O nome não pode estar vazio.")
-        return  # Finaliza a função em caso de erro
+def cadastrar_usuario():
+    try:
 
-    # Cadastra usuário
-    db.inserir_cliente(nome_usuario=nome)
-    print(f"Usuário {nome} cadastrado com sucesso!")
+        dados = request.get_json()
+
+        if dados is None:
+            return jsonify({"Erro":"Corpo da requisição não é um JSON válido"}), 400
+        
+        nome_usuario = dados.get("nome_usuario")
+       
+        #valida nome do usuário
+        valido, mensagem = utils.validar_nome(nome_usuario)
+        if not valido:
+            return jsonify({"erro":mensagem})
+         
+        resposta = db.inserir_cliente(nome_usuario)
+        return resposta
+    except Exception as e:
+        return jsonify({"erro":f"Erro inesperado: {e}"})
     

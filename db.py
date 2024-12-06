@@ -22,12 +22,12 @@ def inserir_cliente(nome_usuario):
     global con
     try:
         conectar_bd()
-        inserir_usuario = f"""INSERT INTO usuario
+        inserir_usuario = """INSERT INTO usuario
     (nome_usuario)
     VALUES
-    ("{nome_usuario}")"""
+    ("%s")"""
         cursor = con.cursor()
-        cursor.execute(inserir_usuario)
+        cursor.execute(inserir_usuario, (nome_usuario,))
         con.commit()
         return jsonify({"Mensagem": "Usuário cadastrado com sucesso!"})
 
@@ -44,19 +44,19 @@ def inserir_livro(titulo_livro, autor_livro, ano_livro, disponivel_livro):
     global con
     try:
         conectar_bd()
-        inserir_livro = f"""INSERT INTO livro
+        inserir_livro = """INSERT INTO livro
         (titulo_livro, 
         autor_livro, 
         ano_livro, 
         disponivel_livro)
         VAlUES
-        ("{titulo_livro}",
-        "{autor_livro}",
-        "{ano_livro}",
-        {disponivel_livro})
+        ("%s",
+        "%s",
+        "%s",
+        %s)
         """
         cursor = con.cursor()
-        cursor.execute(inserir_livro)
+        cursor.execute(inserir_livro, (titulo_livro, autor_livro, ano_livro, disponivel_livro))
         con.commit()
         return jsonify({"Mensagem":"Livro cadastrado com sucesso!"})
     except Error as e:
@@ -94,7 +94,7 @@ def inserir_emprestimo(idLivro, idUsuario):
         data_atual = date.today()
         data_devolucao = data_atual + timedelta(days=15)
         conectar_bd()
-        inserir_emprestimo = f"""
+        inserir_emprestimo = """
         INSERT INTO emprestimo (id_usuario, id_livro, data_emprestimo, data_devolucao) 
         VALUES (%s, %s, %s, %s);
         """
@@ -146,7 +146,7 @@ def busca_usuario_por_id(id_usuario: int):
     global con
     try:
         conectar_bd()
-        consulta_clientes = f'select * from usuario where id_usuario = %s'
+        consulta_clientes = 'select * from usuario where id_usuario = %s'
         cursor = con.cursor()
         cursor.execute(consulta_clientes, (id_usuario,))
         colunas = cursor.fetchall()
@@ -164,7 +164,7 @@ def consultar_livros():
     livros = []
     try:
         conectar_bd()
-        consulta_livro = f'select * from livro'
+        consulta_livro = 'select * from livro'
         cursor = con.cursor()
         cursor.execute(consulta_livro)
         colunas = cursor.fetchall()
@@ -194,7 +194,7 @@ def busca_livro_por_id(id_livro):
     global con
     try:
         conectar_bd()
-        consulta_livros = f'select * from livro where id_livro = "%s" '
+        consulta_livros = 'select * from livro where id_livro = "%s" '
         cursor = con.cursor()
         cursor.execute(consulta_livros, (id_livro,))
         colunas = cursor.fetchall()
