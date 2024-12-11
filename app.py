@@ -17,6 +17,7 @@ def listar_livros():
 @app.route("/cadastrarlivro", methods=['POST']) 
 def cadastrar():
     services.book_services.cadastra_livro()
+    return jsonify({"mensagem":"Livro cadastrado com sucesso!"})
 
 @app.route("/listarusuarios", methods=['GET']) 
 def lista_usuarios():
@@ -25,31 +26,31 @@ def lista_usuarios():
 
 @app.route("/cadastrarusuario", methods=['POST']) 
 def cadastra():
-    services.user_services.cadastrar_usuario()
+    return services.user_services.cadastrar_usuario()
 
 
 @app.route("/exibirlivrosemprestadosporusuario", methods=['POST'])
 def listar_emprestados():
-    services.book_services.lista_livros_emprestados_usuario()
+    return services.book_services.lista_livros_emprestados_usuario()
 
 @app.route("/emprestarlivro", methods=["POST"])
 def empresta():
-    services.book_services.emprestar_livro_para_usuario()
+    return services.book_services.emprestar_livro_para_usuario()
 
     
 
 @app.route("/devolverlivro", methods=['POST']) 
 def devolver():
-    services.book_services.devolver_livro_emprestado()
+    return services.book_services.devolver_livro_emprestado()
 
 @app.route("/buscarlivro", methods=['POST']) 
 def busca():
-    services.book_services.buscar_livro()
+    return services.book_services.buscar_livro()
 
     
 @app.route("/deletalivro", methods=["POST"]) 
 def deleta():
-    services.book_services.deleta_livro()
+    return services.book_services.deleta_livro()
 
 if __name__ == '__main__':
     app.run()

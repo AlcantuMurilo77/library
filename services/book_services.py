@@ -5,62 +5,68 @@ import db
 usuarios = []
 biblioteca = Biblioteca()
 import utils
-from flask import jsonify, request, Flask
+from flask import jsonify, request, Flask, Response
+from marshmallow import Schema, fields, validate, ValidationError
+
 
 def cadastra_livro():
     try:
         
         dados = request.get_json()
-        if dados is None:
-            return jsonify({"erro": "corpo da requisição não é um JSON válido"}), 400
 
-        titulo = dados.get('titulo')
-        autor = dados.get('autor')
-        ano = dados.get('ano')
-        
-        if not titulo or not autor or not ano:
-            return jsonify({"erro": "Campos 'titulo', 'autor' e 'ano' são obrigatórios."}), 400
-        
-        # Aqui, adicionei a validação de tipo para o ano, caso seja necessário garantir que é um número.
+        livro_schema = utils.LivroSchema()
         try:
-            ano = int(ano)  # Garantindo que ano seja convertido para inteiro
-        except ValueError:
-            return jsonify({"erro": "Ano deve ser um número válido."}), 400
-        
-        resposta = db.inserir_livro(titulo, autor, ano)
-        return resposta, 201
 
+            livro = livro_schema.load(dados)
+        except ValidationError as err:
+            return jsonify({"erro": "Dados inválidos", "detalhes": err.messages}), 400
+
+        titulo = livro.get('titulo')
+        autor = livro.get('autor')
+        ano = livro.get('ano')
+        
+        resposta = db.inserir_livro(titulo, autor, ano, disponivel_livro=1)
+
+        return jsonify({"mensagem": "Livro cadastrado com sucesso!"}), 200
+    
     except Exception as e:
-        return jsonify({"erro": f"Erro inesperado {e}"}), 500
+        return jsonify({f"Erro":"Erro inesperado: {e}"}), 500
     
 
 def deleta_livro():
     try:
         dados = request.get_json()
+        id_livro_schema = utils.IDSchema()
 
-        #recebe id do livro e valida
-        id_livro = dados.get("id_livro")
-        valido, mensagem = utils.validar_id(id_livro)
-        if not valido:
-            return jsonify({"Erro": mensagem}), 400
+        try:
+            id_livro = id_livro_schema.load(dados)
+        except ValidationError as err:
+            jsonify({"erro":"Dados inválidos", "detalhes":err.messages})
+        
+        id_livro = id_livro.get("id")
+
         resposta = db.deletaLivro(id_livro)
         return resposta, 201
+    
     except Exception as e:
         return jsonify({f"Erro":"Erro inesperado: {e}"}), 500
 
 def buscar_livro():
     try:
         dados = request.get_json()
-        #Recebe o ID do livro e valida
-        id_livro = dados.get("id_livro")
-        valido, mensagem = utils.validar_id(id_livro)
-        if not valido:
-            return jsonify({"Erro": mensagem}), 400
+        id_livro_schema = utils.IDSchema()
 
+        try:
+            id_livro = id_livro_schema.load(dados)
+        except ValidationError as err:
+            jsonify({"erro":"Dados inválidos", "detalhes":err.messages})
+        
+        id_livro = id_livro.get("id")
+        
         # verifica se o livro existe no BD
         verifica_livro = db.busca_livro_por_id(id_livro)
         if verifica_livro is None:
-            return jsonify({"erro":"Não foi possível encontrar o usuário"}), 404
+            return jsonify({"erro":"Não foi possível encontrar o livro"}), 404
 
         # caso sim, retorna o livro
         resposta = db.busca_livro_por_id(id_livro)
@@ -70,18 +76,30 @@ def buscar_livro():
         
 def emprestar_livro_para_usuario():
     try:
-        # recebe ID do usuário e valida
+        # recebe os dados da requisição
         dados = request.get_json()
-        id_usuario = dados.get("id_usuario")
-        valido, mensagem = utils.validar_id(id_usuario)
-        if not valido:
-            return jsonify({"Erro": mensagem}), 400
+
+        # valida o id do usuario
+        id_usuario_schema = utils.IDSchema()
+        try:
+            id_usuario = id_usuario_schema.load({"id":dados.get("id_usuario")})
+        except ValidationError as err:
+            return jsonify({"erro":"Dados inválidos", "detalhes":err.messages}), 400
+
+        id_usuario = id_usuario.get("id")    
+
 
         # recebe ID livro e valida
-        id_livro = dados.get("id_livro")
-        valido, mensagem = utils.validar_id(id_livro)
-        if not valido:
-            return jsonify({"Erro": mensagem}), 400
+        id_livro_schema = utils.IDSchema()
+
+        try:
+            id_livro = id_livro_schema.load({"id":dados.get("id_livro")})
+        except ValidationError as err:
+            return jsonify({"erro":"Dados inválidos", "detalhes":err.messages}), 400
+
+
+        id_livro = id_livro.get("id")
+
 
         # verifica se o usuario existe no BD
         verifica_usuario = db.busca_usuario_por_id(id_usuario)
@@ -106,19 +124,29 @@ def emprestar_livro_para_usuario():
     
 def devolver_livro_emprestado():
     try:
+        # recebe os dados da requisição
         dados = request.get_json()
 
         #recebe id de usuario e valida 
-        id_usuario = dados.get("id_usuario")
-        valido, mensagem = utils.validar_id(id_usuario)
-        if not valido:
-            return jsonify({"Erro": mensagem}), 400
+        id_usuario_schema = utils.IDSchema()
+
+        try:
+            id_usuario = id_usuario_schema.load({"id":dados.get("id_usuario")})
+        except ValidationError as err:
+            return jsonify({"erro":"Dados inválidos", "detalhes":err.messages}), 400
         
-        #recebe id_livro e valida (VALIDAR)
-        id_livro = dados.get("id_livro")
-        valido, mensagem = utils.validar_id(id_livro)
-        if not valido:
-            return jsonify({"Erro": mensagem}), 400
+        id_usuario = id_usuario.get("id")
+
+
+        #recebe id_livro e valida
+        id_livro_schema = utils.IDSchema()
+
+        try:
+            id_livro = id_livro_schema.load({"id":dados.get("id_livro")})
+        except ValidationError as err:
+            return jsonify({"erro":"Dados inválidos", "detalhes":err.messages}), 400
+        
+        id_livro = id_livro.get("id")
 
         # verifica se o usuario existe no BD
         verifica_usuario = db.busca_usuario_por_id(id_usuario)
@@ -127,15 +155,23 @@ def devolver_livro_emprestado():
         
         # verifica se o livro existe no BD
         verifica_livro = db.busca_livro_por_id(id_livro)
+
+        if isinstance(verifica_livro, Response):
+            livro_data = verifica_livro.get_json()
+
         if verifica_livro is None:
             return jsonify({"erro":"Não foi possível encontrar o livro"}), 404
+
+        
+
+        
         
         # verifica se o livro se encontra na lista de livros emprestados pelo usuário e realmente n foi devolvido
         emprestimos_do_usuario = db.consulta_emprestimo_pendente_por_id_usuario(id_usuario)
         emprestimo_encontrado = None
         for emprestimo in emprestimos_do_usuario:
-            if verifica_livro.titulo.lower() == emprestimo[1]:
-                emprestimo_encontrado = emprestimo[1]
+            if livro_data['titulo'].lower() == emprestimo['titulo_livro'].lower():
+                emprestimo_encontrado = emprestimo['titulo_livro'].lower()
 
         if emprestimo_encontrado is None:
             return jsonify({"erro":"Este livro não foi emprestado por esse usuário ou já foi devolvido."}), 409
@@ -151,13 +187,17 @@ def devolver_livro_emprestado():
 def lista_livros_emprestados_usuario():
     try:
         dados = request.get_json()
-        if dados is None:
-            return jsonify({"Erro":"Corpo da requisição não é um JSON válido"}), 400
-        #recebe id usuario e valida
-        id_usuario = dados.get("id_usuario")
-        valido, mensagem = utils.validar_id(id_usuario)
-        if not valido:
-            return jsonify({"Erro": mensagem}), 400
+        id_schema = utils.IDSchema()
+        
+        try:
+            id_usuario = id_schema.load(dados)
+        except ValidationError as err:
+            return jsonify({"erro": "Dados inválidos", "detalhes":err.messages})
+    
+
+
+        id_usuario = id_usuario.get("id")
+
         
         #verifica se usuário existe
         verifica_usuario = db.busca_livro_por_id(id_usuario)

@@ -2,7 +2,7 @@ import mysql.connector
 from mysql.connector import Error
 import models.biblioteca as biblioteca
 from datetime import timedelta, date
-from flask import jsonify
+from flask import jsonify, Response
 
 con = None
 #Função para conectar ao banco de dados.
@@ -25,24 +25,25 @@ def inserir_cliente(nome_usuario):
         inserir_usuario = """INSERT INTO usuario
     (nome_usuario)
     VALUES
-    ("%s")"""
+    (%s)"""
         cursor = con.cursor()
         cursor.execute(inserir_usuario, (nome_usuario,))
         con.commit()
-        return jsonify({"Mensagem": "Usuário cadastrado com sucesso!"})
 
     except Error as e:
-        return jsonify({"Erro": f"Falha ao inserir usuário: {e}"})
+        raise Exception(f"Falha ao inserir usuário: {e}")
         
     finally:
         if con.is_connected():
-            con.close()
             cursor.close()
+            con.close()
+            
 
 #Função para inserir livro novo na tabela livro
 def inserir_livro(titulo_livro, autor_livro, ano_livro, disponivel_livro):
     global con
     try:
+        disponivel_livro = 1
         conectar_bd()
         inserir_livro = """INSERT INTO livro
         (titulo_livro, 
@@ -50,17 +51,17 @@ def inserir_livro(titulo_livro, autor_livro, ano_livro, disponivel_livro):
         ano_livro, 
         disponivel_livro)
         VAlUES
-        ("%s",
-        "%s",
-        "%s",
+        (%s,
+        %s,
+        %s,
         %s)
         """
         cursor = con.cursor()
         cursor.execute(inserir_livro, (titulo_livro, autor_livro, ano_livro, disponivel_livro))
         con.commit()
-        return jsonify({"Mensagem":"Livro cadastrado com sucesso!"})
+        return {"Mensagem":"Livro cadastrado com sucesso!"}
     except Error as e:
-        return jsonify({"Erro":"Falha ao inserir livro: {e}"})
+        return {"Erro":f"Falha ao inserir livro: {e}"}
     finally:
         if con.is_connected():
             cursor.close()
@@ -227,10 +228,15 @@ def verifica_disponibilidade_livro(id_livro):
     global con
     try:
         livro = busca_livro_por_id(id_livro)
-        if not livro:
+        if isinstance(livro, Response):
+            livro_data = livro.get_json()
+
+        livro_data = livro.get_json()
+
+        if not livro_data:
             return jsonify({"erro":"Não foi possível encontrar o livro no banco de dados. "})
             
-        return livro.disponivel
+        return livro_data['disponibilidade']
         
     except Error as e:
         return jsonify({"erro":f"Não foi possível verificar a disponibilidade do livro: {e}"})
