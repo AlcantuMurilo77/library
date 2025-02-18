@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <link rel="stylesheet" href="style.css">
+    <title>Empréstimos de Usuário</title>
+</head>
+
+<body>
+    <header>
+        <h1>Listar empréstimos de usuário</h1>
+    </header>
+
+    <main>
+        <!--recebendo input do usuário-->
+        <section>
+            <h2>Digite o ID do usuário para ver seus empréstimos atuais:</h2>
+            <form id="buscaForm">
+                <input type="text" id="idUsuario" name="idUsuario" placeholder="Digite aqui...">
+                <button type="submit">Buscar</button>
+            </form>
+        </section>
+
+        <!--listagem simulada dos empréstimos-->
+        <section>
+            <h2>Empréstimos realizados</h2>
+            <ul id="listaEmprestimos">
+                <!-- A lista de empréstimos será populada aqui pelo JavaScript -->
+            </ul>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>Biblioteca bacana &copy; 2024</p>
+    </footer>
+    <script src="exibiremprestimos.js"></script>
+
+        
+</body>
+
+</html>

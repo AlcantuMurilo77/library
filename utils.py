@@ -10,6 +10,7 @@ def validar_alfanumerico(valor):
     return valor
 
 def validar_id(valor):
+    
     if not valor:
         raise ValidationError("O ID não pode ser vazio")
     if not isinstance(valor, int) or valor <= 0:

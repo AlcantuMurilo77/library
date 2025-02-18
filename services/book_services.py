@@ -65,6 +65,7 @@ def buscar_livro():
         
         # verifica se o livro existe no BD
         verifica_livro = db.busca_livro_por_id(id_livro)
+        
         if verifica_livro is None:
             return jsonify({"erro":"Não foi possível encontrar o livro"}), 404
 
@@ -114,11 +115,12 @@ def emprestar_livro_para_usuario():
         #verificando se o livro está disponível
         esta_disponivel = db.verifica_disponibilidade_livro(id_livro)
         
-        if esta_disponivel:
-            resposta = db.inserir_emprestimo(id_livro, id_usuario)
-            return resposta, 201
-        else:
+        if not esta_disponivel:
             return jsonify({"erro":"O livro não está disponível para empréstimo"}), 409
+        
+        resposta = db.inserir_emprestimo(id_livro, id_usuario)
+        return resposta, 201   
+        
     except Exception as e:
         return jsonify({"Erro":f"Erro inesperado: {e}"}), 500
     
@@ -206,6 +208,10 @@ def lista_livros_emprestados_usuario():
 
         #busca os livros na tabela empréstimo
         resposta = db.consulta_emprestimo_pendente_por_id_usuario(id_usuario)
+
+        if not resposta:
+            return jsonify([]), 200  # Retorna uma lista vazia se não houver empréstimos
+        
         return jsonify(resposta), 200
     
     except Exception as e:

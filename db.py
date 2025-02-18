@@ -209,8 +209,6 @@ def busca_livro_por_id(id_livro):
                         "autor":livro.autor,
                         "ano":livro.ano,
                         "disponibilidade":livro.disponivel
-
-
         })
     except mysql.connector.Error as db_err:
         print(f"Erro no banco de dados: {db_err}")
@@ -263,12 +261,10 @@ def deletaLivro(id_livro):
     except Error as e:
         return jsonify({"erro":f"Falha ao deletar livro. Este livro provavelmente possui um registro de empréstimo, exclui-lo causaria inconsistência de dados."})
         
-
     finally:
         if con.is_connected:
             cursor.close()
             con.close()     
-
 
 #Função para consultar empréstimos pendentes de usuario especifico
 def consulta_emprestimo_pendente_por_id_usuario(id_usuario):
@@ -299,7 +295,6 @@ def consulta_emprestimo_pendente_por_id_usuario(id_usuario):
                 "data_devolucao":coluna[2],
                 "data_devolvido":coluna[3],
                 "data_emprestimo":coluna[4]
-
             }
             emprestimos.append(emprestimo)
             return emprestimos
