@@ -20,11 +20,6 @@ def cadastrar_usuario():
         
 
         nome_usuario = usuario.get('nome_usuario')
-       
-        #valida nome do usuário
-        #valido, mensagem = utils.validar_nome(nome_usuario)
-        #if not valido:
-            #return jsonify({"erro":mensagem}), 400
          
         resposta = db.inserir_cliente(nome_usuario)
 

@@ -197,7 +197,6 @@ def lista_livros_emprestados_usuario():
             return jsonify({"erro": "Dados inválidos", "detalhes":err.messages})
     
 
-
         id_usuario = id_usuario.get("id")
 
         

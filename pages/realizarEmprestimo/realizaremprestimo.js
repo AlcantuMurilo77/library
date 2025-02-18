@@ -1,4 +1,4 @@
-async function onSubmit(event) {
+document.getElementById("realizaEmprestimo").addEventListener("submit", function(event) {
   event.preventDefault();
 
   const idUsuario = document.getElementById("usuarioEmprestimo").value.trim();
@@ -13,27 +13,8 @@ async function onSubmit(event) {
       id_usuario: idUsuario,
       id_livro: idLivro
   };
-  try {
-    const result = await fetch('http://localhost:5000/emprestarlivro', {
-      method: "POST",
-      headers: {
-          "Content-Type": "application/json"
-      },
-      body: JSON.stringify(dados)
-  })
-  const data = await result.json();
-  if (data.erro) {
-    alert(`Erro: ${data.erro}`);
-} else {
-    alert("Empréstimo realizado com sucesso!");
-    document.getElementById("realizaEmprestimo").reset();
-}
-    
-  } catch (error) {
-    console.error("Erro ao tentar realizar o empréstimo:", error);
-      alert("Erro ao conectar com o servidor");
-  }
-  /*fetch('http://localhost:5000/emprestarlivro', {
+
+  fetch('http://localhost:5000/emprestarlivro', {
       method: "POST",
       headers: {
           "Content-Type": "application/json"
@@ -51,7 +32,6 @@ async function onSubmit(event) {
   })
   .catch(error => {
       console.error("Erro ao tentar realizar o empréstimo:", error);
-      alert("Erro ao conectar com o servi */
-}
-
-document.getElementById("realizaEmprestimo").addEventListener("submit", onSubmit);
+      alert("Erro ao conectar com o servidor.");
+  });
+});
