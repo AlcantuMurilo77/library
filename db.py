@@ -13,7 +13,7 @@ def conectar_bd():
         con = mysql.connector.connect(host='localhost',
                                         database='biblioteca',
                                         user='murilo',
-                                        password='BushDid9/11')
+                                        password='*')
     except Error as e:
         print(f"Falha ao conectar ao banco de dados: {e}")
 
