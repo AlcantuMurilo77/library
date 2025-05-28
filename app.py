@@ -1,56 +1,51 @@
-
 import services
 import services.book_services
 import services.user_services
 import db
 from flask_cors import CORS
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, jsonify
 
 app = Flask(__name__)
-
-# Configuração de CORS global
 CORS(app, resources={r"/*": {"origins": "http://127.0.0.1:5500"}})
 
+@app.route("/listbooks", methods=['GET']) 
+def list_books():
+    books = db.get_books()
+    return jsonify(books)
 
+@app.route("/addbook", methods=['POST']) 
+def add_book():
+    services.book_services.add_book()
+    return jsonify({"message": "Book added successfully!"})
 
-@app.route("/listarlivros", methods=['GET']) 
-def listar_livros():
-    livros = db.consultar_livros()
-    return jsonify(livros)
+@app.route("/listusers", methods=['GET']) 
+def list_users():
+    users = db.get_users()
+    return jsonify(users)
 
-@app.route("/cadastrarlivro", methods=['POST']) 
-def cadastrar():
-    services.book_services.cadastra_livro()
-    return jsonify({"mensagem": "Livro cadastrado com sucesso!"})
+@app.route("/adduser", methods=['POST']) 
+def add_user():
+    return services.user_services.register_user()
 
-@app.route("/listarusuarios", methods=['GET']) 
-def lista_usuarios():
-    usuarios = db.consultar_clientes()
-    return jsonify(usuarios)
+@app.route("/borrowedbooksbyuser", methods=['POST'])
+def list_borrowed_books():
+    return services.book_services.list_user_borrowed_books()
 
-@app.route("/cadastrarusuario", methods=['POST']) 
-def cadastra():
-    return services.user_services.cadastrar_usuario()
+@app.route("/borrowbook", methods=["POST"])
+def borrow_book():
+    return services.book_services.borrow_book()
 
-@app.route("/exibirlivrosemprestadosporusuario", methods=['POST'])
-def listar_emprestados():
-    return services.book_services.lista_livros_emprestados_usuario()
+@app.route("/returnbook", methods=['POST']) 
+def return_book():
+    return services.book_services.return_book()
 
-@app.route("/emprestarlivro", methods=["POST"])
-def empresta():
-    return services.book_services.emprestar_livro_para_usuario()
+@app.route("/searchbook", methods=['POST']) 
+def search_book():
+    return services.book_services.search_book()
 
-@app.route("/devolverlivro", methods=['POST']) 
-def devolver():
-    return services.book_services.devolver_livro_emprestado()
-
-@app.route("/buscarlivro", methods=['POST']) 
-def busca():
-    return services.book_services.buscar_livro()
-
-@app.route("/deletalivro", methods=["DELETE"]) 
-def deleta():
-    return services.book_services.deleta_livro()
+@app.route("/deletebook", methods=["DELETE"]) 
+def delete_book():
+    return services.book_services.delete_book()
 
 if __name__ == '__main__':
     app.run()

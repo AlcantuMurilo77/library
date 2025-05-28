@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/turbo-waddle/pages/style.css">
+    <title>User Loans</title>
+</head>
+<body>
+    <header>
+        <h1>List User Loans</h1>
+    </header>
+
+    <main>
+        <section>
+            <h2>Enter the User ID to see their current loans:</h2>
+            <form id="searchForm">
+                <input type="text" id="userId" name="userId" placeholder="Enter User ID...">
+                <button type="submit">Search</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>Loans</h2>
+            <ul id="loansList">
+                <!-- Loans will be populated here -->
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>Cool Library &copy; 2024</p>
+    </footer>
+
+    <script src="displayloans.js"></script>
+</body>
+</html>

@@ -3,58 +3,68 @@ from marshmallow import Schema, fields, validate, ValidationError
 from datetime import datetime
 
 """
-Uso do Marshmallow:
+Using Marshmallow:
 
-O Marshmallow é utilizado neste projeto para validar e deserializar dados recebidos em requisições HTTP. 
-Ele converte dados no formato JSON para objetos Python, aplicando regras de validação para garantir que 
-os dados estejam corretos antes de serem processados.
+Marshmallow is used in this project to validate and deserialize data received in HTTP requests.
+It converts JSON-formatted data into Python objects, applying validation rules to ensure
+the data is correct before being processed.
 
-1. Schemas e Validação
-   - O Marshmallow utiliza schemas para definir a estrutura dos dados e as validações. No nosso código, temos três schemas:
-     - LivroSchema: Valida os dados de um livro (título, autor e ano). O título e o autor devem ser 
-     strings alfanuméricas não vazias, e o ano deve estar no intervalo de 0 até o ano atual.
-     - UsuarioSchema: Valida o nome do usuário, que deve ser uma string alfanumérica não vazia.
-     - IDSchema: Valida que o ID seja um número inteiro positivo.
+1. Schemas and Validation
+   - Marshmallow uses schemas to define data structures and validations. In our code, we have three schemas:
+     - BookSchema: Validates book data (title, author, and year). Title and author must be
+     non-empty alphanumeric strings, and year must be in the range from 0 up to the current year.
+     - UserSchema: Validates the username, which must be a non-empty alphanumeric string.
+     - IDSchema: Validates that the ID is a positive integer.
    
-2. Deserialização e Validação
-   - O método `load()` do Marshmallow é usado para carregar os dados (converte JSON para Python) e 
-   validá-los de acordo com as regras definidas nos schemas. 
-   Se os dados não forem válidos, uma exceção `ValidationError` é lançada, e os erros são retornados na resposta.
+2. Deserialization and Validation
+   - The `load()` method of Marshmallow is used to load data (convert JSON to Python) and
+   validate it according to the rules defined in the schemas.
+   If the data is invalid, a `ValidationError` is raised, and the errors are returned in the response.
 
-3. exemplo de uso:
-   livro_schema = utils.LivroSchema()
+3. Example of usage:
+   book_schema = utils.BookSchema()
    try:
-       livro = livro_schema.load(dados)   - Valida e carrega os dados
+       book = book_schema.load(data)   - Validates and loads the data
    except ValidationError as err:
-       return jsonify({"erro": "Dados inválidos", "detalhes": err.messages}), 400 """
+       return jsonify({"error": "Invalid data", "details": err.messages}), 400
+"""
+
+current_year = datetime.now().year
+
+def validate_alphanumeric(value):
+    if not re.match("^[A-Za-z0-9 ]+$", value):
+        raise ValidationError("The value contains invalid characters.")
+    return value
+
+def validate_id(value):
+    if not value:
+        raise ValidationError("The ID cannot be empty.")
+    if not isinstance(value, int) or value <= 0:
+        raise ValidationError("The ID must be a positive integer.")
+    return value
 
 
-ano = datetime.now().year
+class BookSchema(Schema):
+    title = fields.String(required=True, validate=[
+        validate.Length(min=1, error="The title cannot be empty."),
+        validate_alphanumeric
+    ])
+    author = fields.String(required=True, validate=[
+        validate.Length(min=1, error="The author cannot be empty."),
+        validate_alphanumeric
+    ])
+    year = fields.Integer(required=True, validate=validate.Range(
+        min=0, max=current_year, error="The year must be between 0 and the current year."
+    ))
 
-def validar_alfanumerico(valor):
-    if not re.match("^[A-Za-z0-9 ]+$", valor):
-        raise ValidationError("O valor contém caracteres inválidos.")
-    return valor
-
-def validar_id(valor):
-    
-    if not valor:
-        raise ValidationError("O ID não pode ser vazio")
-    if not isinstance(valor, int) or valor <= 0:
-        raise ValidationError("O ID deve ser um número inteiro positivo.")
-    return valor
-
-
-class LivroSchema(Schema):
-    titulo = fields.String(required=True, validate=[validate.Length(min=1, error="O título não pode estar vazio."), validar_alfanumerico])
-    autor = fields.String(required=True, validate=[validate.Length(min=1, error="O autor não pode estar vazio."), validar_alfanumerico])
-    ano = fields.Integer(required=True, validate=validate.Range(min=0, max=ano, error="O ano deve ser entre 0 e ano atual."))
-
-class UsuarioSchema(Schema):
-    nome_usuario = fields.String(required=True, validate=[validate.Length(min=1, error="O nome do usuário não pode estar vazio"), validar_alfanumerico])
+class UserSchema(Schema):
+    username = fields.String(required=True, validate=[
+        validate.Length(min=1, error="The username cannot be empty."),
+        validate_alphanumeric
+    ])
 
 class IDSchema(Schema):
     id = fields.Integer(
-        required = True,
-        validate=[validar_id]
+        required=True,
+        validate=[validate_id]
     )

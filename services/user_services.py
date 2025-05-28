@@ -1,30 +1,27 @@
-from models.biblioteca import Usuario, Biblioteca, Livro
+from models.library import User, Library, Book
 import random
 import datetime
 import db 
-biblioteca = Biblioteca()
+library = Library()
 import utils
 from flask import Flask, request, jsonify
 from marshmallow import Schema, fields, validate, ValidationError
 
-def cadastrar_usuario():
+def register_user():
     try:
+        data = request.get_json()
 
-        dados = request.get_json()
-
-        usuario_schema = utils.UsuarioSchema()
+        user_schema = utils.UserSchema()
         try:
-            usuario = usuario_schema.load(dados)
+            user = user_schema.load(data)
         except ValidationError as err:
-            return jsonify({"erro": "Dados inválidos", "detalhes":err.messages}), 400
-        
+            return jsonify({"error": "Invalid data", "details": err.messages}), 400
 
-        nome_usuario = usuario.get('nome_usuario')
-         
-        resposta = db.inserir_cliente(nome_usuario)
+        username = user.get('username')
 
-        return jsonify({"mensagem":"Usuario cadastrado com sucesso"}), 200
-    
+        result = db.insert_user(username)
+
+        return jsonify({"message": "User registered successfully"}), 200
+
     except Exception as e:
-        return jsonify({"erro":f"Erro inesperado: {e}"}), 500
-    
+        return jsonify({"error": f"Unexpected error: {e}"}), 500

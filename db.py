@@ -1,217 +1,179 @@
 import mysql.connector
 from mysql.connector import Error
-import models.biblioteca as biblioteca
+import models.library as library
 from datetime import timedelta, date
 from flask import jsonify, Response
 
 con = None
-#Função para conectar ao banco de dados.
-def conectar_bd():
-    global con
-    try:
-        
-        con = mysql.connector.connect(host='localhost',
-                                        database='biblioteca',
-                                        user='murilo',
-                                        password='*')
-    except Error as e:
-        print(f"Falha ao conectar ao banco de dados: {e}")
 
-#Função para inserir cliente novo na tabela usuario
-def inserir_cliente(nome_usuario):
+def connect_db():
     global con
     try:
-        conectar_bd()
-        inserir_usuario = """INSERT INTO usuario
-    (nome_usuario)
-    VALUES
-    (%s)"""
+        con = mysql.connector.connect(
+            host='localhost',
+            database='biblioteca',
+            user='murilo',
+            password='*'
+        )
+    except Error as e:
+        print(f"Failed to connect to the database: {e}")
+
+def insert_user(nome_usuario):
+    global con
+    try:
+        connect_db()
+        insert_query = """INSERT INTO usuario (nome_usuario) VALUES (%s)"""
         cursor = con.cursor()
-        cursor.execute(inserir_usuario, (nome_usuario,))
+        cursor.execute(insert_query, (nome_usuario,))
         con.commit()
-
     except Error as e:
-        raise Exception(f"Falha ao inserir usuário: {e}")
-        
-    finally:
-        if con.is_connected():
-            cursor.close()
-            con.close()
-            
-
-#Função para inserir livro novo na tabela livro
-def inserir_livro(titulo_livro, autor_livro, ano_livro, disponivel_livro):
-    global con
-    try:
-        disponivel_livro = 1
-        conectar_bd()
-        inserir_livro = """INSERT INTO livro
-        (titulo_livro, 
-        autor_livro, 
-        ano_livro, 
-        disponivel_livro)
-        VAlUES
-        (%s,
-        %s,
-        %s,
-        %s)
-        """
-        cursor = con.cursor()
-        cursor.execute(inserir_livro, (titulo_livro, autor_livro, ano_livro, disponivel_livro))
-        con.commit()
-        return {"Mensagem":"Livro cadastrado com sucesso!"}
-    except Error as e:
-        return {"Erro":f"Falha ao inserir livro: {e}"}
+        raise Exception(f"Failed to insert user: {e}")
     finally:
         if con.is_connected():
             cursor.close()
             con.close()
 
-#Função para deixar livro disponivel
-def disponibilizar_livro(idLivro):
+def insert_book(title, author, year, available):
+    global con
+    try:
+        available = 1
+        connect_db()
+        insert_query = """INSERT INTO livro (titulo_livro, autor_livro, ano_livro, disponivel_livro) VALUES (%s, %s, %s, %s)"""
+        cursor = con.cursor()
+        cursor.execute(insert_query, (title, author, year, available))
+        con.commit()
+        return {"message": "Book successfully added!"}
+    except Error as e:
+        return {"error": f"Failed to insert book: {e}"}
+    finally:
+        if con.is_connected():
+            cursor.close()
+            con.close()
+
+def make_book_available(book_id):
     try:
         global con
-        conectar_bd()
-        deixarLivro_disponivel = """UPDATE livro set disponivel_livro = 1
-            WHERE livro.id_livro = %s """
+        connect_db()
+        query = """UPDATE livro SET disponivel_livro = 1 WHERE livro.id_livro = %s"""
         cursor = con.cursor()
-        cursor.execute(deixarLivro_disponivel, (idLivro,))
+        cursor.execute(query, (book_id,))
         con.commit()
-        return jsonify({"Mensagem":"Livro Devolvido com sucesso!"})
+        return jsonify({"message": "Book successfully returned!"})
     except Error as e:
-        print(f"Erro ao disponibilizar livro: {e}")
+        print(f"Error making book available: {e}")
         return
     finally:
         if con.is_connected():
             cursor.close()
             con.close()
 
-
-
-#Função para inserir emprestimo novo na tabela emprestimo
-def inserir_emprestimo(idLivro, idUsuario):
+def insert_loan(book_id, user_id):
     global con
     try:
-        data_atual = date.today()
-        data_devolucao = data_atual + timedelta(days=15)
-        conectar_bd()
-        inserir_emprestimo = """
-        INSERT INTO emprestimo (id_usuario, id_livro, data_emprestimo, data_devolucao) 
-        VALUES (%s, %s, %s, %s);
-        """
+        today = date.today()
+        due_date = today + timedelta(days=15)
+        connect_db()
+        insert_query = """INSERT INTO emprestimo (id_usuario, id_livro, data_emprestimo, data_devolucao) VALUES (%s, %s, %s, %s)"""
         cursor = con.cursor()
-        cursor.execute(inserir_emprestimo, (idUsuario, idLivro, data_atual, data_devolucao))
+        cursor.execute(insert_query, (user_id, book_id, today, due_date))
         con.commit()
 
-        deixarLivro_indisponivel = """UPDATE livro set disponivel_livro = 0
-        WHERE livro.id_livro = %s """
-        cursor.execute(deixarLivro_indisponivel, (idLivro,))
+        update_query = """UPDATE livro SET disponivel_livro = 0 WHERE livro.id_livro = %s"""
+        cursor.execute(update_query, (book_id,))
         con.commit()
         
-        return jsonify({"Mensagem": "Empréstimo registrado com sucesso!"})
-        
+        return jsonify({"message": "Loan successfully registered!"})
     except Error as e:
-        print("Falha ao inserir dados no BD: ", e)
+        print("Failed to insert data into the DB: ", e)
         return
     finally:
         if con.is_connected():
             cursor.close()
             con.close()
 
-#Função para consultar usuarios cadastrados
-def consultar_clientes():
+def get_users():
     global con
-    clientes = []
+    users = []
     try:
-        conectar_bd()
-        consulta_cliente = f'select * from usuario'
+        connect_db()
+        query = 'SELECT * FROM usuario'
         cursor = con.cursor()
-        cursor.execute(consulta_cliente)
-        colunas = cursor.fetchall()
-        for coluna in colunas:
-            cliente =  {"id": coluna[0], "nome" :coluna[1]}
-            clientes.append(cliente)
-        return clientes
-    
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        for row in rows:
+            users.append({"id": row[0], "name": row[1]})
+        return users
     except Error as e:
-        print(f"Falha ao consultar a tabela: {e}")
-        return Exception("Erro no banco de dados: " + e.msg)
-    
+        print(f"Failed to query the table: {e}")
+        return Exception("Database error: " + e.msg)
     finally:
         if con.is_connected():
             cursor.close()
             con.close()
 
-#Funçâo para verificar existencia de usuario espcifico e retornar uma instancia do mesmo em forma de objeto
-def busca_usuario_por_id(id_usuario: int):
+def get_user_by_id(user_id: int):
     global con
     try:
-        conectar_bd()
-        consulta_clientes = 'select * from usuario where id_usuario = %s'
+        connect_db()
+        query = 'SELECT * FROM usuario WHERE id_usuario = %s'
         cursor = con.cursor()
-        cursor.execute(consulta_clientes, (id_usuario,))
-        colunas = cursor.fetchall()
-        return biblioteca.Usuario(nome=colunas[0][1], id=colunas[0][0])
+        cursor.execute(query, (user_id,))
+        rows = cursor.fetchall()
+        return library.Usuario(nome=rows[0][1], id=rows[0][0])
     except Error as e:
-        return jsonify({"erro":f"Erro ao buscar usuário: {e}"})
+        return jsonify({"error": f"Error fetching user: {e}"})
     finally:
         if con.is_connected():
             cursor.close()
             con.close()
 
-
-def consultar_livros():
+def get_books():
     global con
-    livros = []
+    books = []
     try:
-        conectar_bd()
-        consulta_livro = 'select * from livro'
+        connect_db()
+        query = 'SELECT * FROM livro'
         cursor = con.cursor()
-        cursor.execute(consulta_livro)
-        colunas = cursor.fetchall()
-        for coluna in colunas:
-            livro = {
-                "id": coluna[0],
-                "titulo": coluna[1],
-                "autor": coluna[2],
-                "ano": coluna[3],
-                "disponivel": "Disponível" if coluna[4] else "Indisponível"
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        for row in rows:
+            book = {
+                "id": row[0],
+                "title": row[1],
+                "author": row[2],
+                "year": row[3],
+                "available": "Available" if row[4] else "Unavailable"
             }
-            livros.append(livro)
-
-        return livros
-    
+            books.append(book)
+        return books
     except Error as e:
-        print(f"Falha ao consultar a tabela: {e}")
+        print(f"Failed to query the table: {e}")
         return
     finally:
         if con.is_connected():
             cursor.close()
             con.close()
 
-
-#Funçâo para verificar existencia de livro espcifico e retornar uma instancia do mesmo em forma de objeto
-def busca_livro_por_id(id_livro):
+def get_book_by_id(book_id):
     global con
     try:
-        conectar_bd()
-        consulta_livros = 'select * from livro where id_livro = "%s" '
+        connect_db()
+        query = 'SELECT * FROM livro WHERE id_livro = %s'
         cursor = con.cursor()
-        cursor.execute(consulta_livros, (id_livro,))
-        colunas = cursor.fetchall()
-
-        if not colunas:
+        cursor.execute(query, (book_id,))
+        rows = cursor.fetchall()
+        if not rows:
             return None
-        
-        livro =  biblioteca.Livro(colunas[0][1], colunas[0][2], colunas[0][3], colunas[0][0], disponivel=colunas[0][4])
-        return jsonify({"id":livro.id,
-                        "titulo":livro.titulo,
-                        "autor":livro.autor,
-                        "ano":livro.ano,
-                        "disponibilidade":livro.disponivel
+        book = library.Livro(rows[0][1], rows[0][2], rows[0][3], rows[0][0], disponivel=rows[0][4])
+        return jsonify({
+            "id": book.id,
+            "title": book.titulo,
+            "author": book.autor,
+            "year": book.ano,
+            "available": book.disponivel
         })
     except mysql.connector.Error as db_err:
-        print(f"Erro no banco de dados: {db_err}")
+        print(f"Database error: {db_err}")
         return None
     except Exception as e:
         print(e)
@@ -220,107 +182,94 @@ def busca_livro_por_id(id_livro):
         if con.is_connected():
             cursor.close()
             con.close()
-    
-#Função para verificar se um livro já não está emprestado
-def verifica_disponibilidade_livro(id_livro):
+
+def check_book_availability(book_id):
     global con
     try:
-        livro = busca_livro_por_id(id_livro)
-        if isinstance(livro, Response):
-            livro_data = livro.get_json()
-
-        livro_data = livro.get_json()
-
-        if not livro_data:
-            return jsonify({"erro":"Não foi possível encontrar o livro no banco de dados. "})
-            
-        return livro_data['disponibilidade']
-        
+        book = get_book_by_id(book_id)
+        if isinstance(book, Response):
+            book_data = book.get_json()
+        book_data = book.get_json()
+        if not book_data:
+            return jsonify({"error": "Could not find the book in the database."})
+        return book_data['available']
     except Error as e:
-        return jsonify({"erro":f"Não foi possível verificar a disponibilidade do livro: {e}"})
+        return jsonify({"error": f"Could not check book availability: {e}"})
 
-#Função para deletar livros
-def deletaLivro(id_livro):
+def delete_book(book_id):
     global con
     try:
-        conectar_bd()
-        verificar_emprestimo = 'select * from emprestimo where id_livro = "%s" and data_devolvido=null'
-        deletar_livro = 'delete FROM livro WHERE livro.id_livro = "%s"'
+        connect_db()
+        check_loan = 'SELECT * FROM emprestimo WHERE id_livro = %s AND data_devolvido IS NULL'
+        delete_query = 'DELETE FROM livro WHERE id_livro = %s'
         cursor = con.cursor()
-        cursor.execute(verificar_emprestimo, (id_livro,))
-        estaEmprestado = cursor.fetchall()
+        cursor.execute(check_loan, (book_id,))
+        is_loaned = cursor.fetchall()
 
-        if not estaEmprestado:
+        if not is_loaned:
             cursor.nextset()
-            cursor.execute(deletar_livro, (id_livro,))
+            cursor.execute(delete_query, (book_id,))
             con.commit()
-            return jsonify({"mensagem":"Livro deletado com sucesso!"})    
+            return jsonify({"message": "Book successfully deleted!"})    
         else:
-            return jsonify({"erro":"Não é possível deletar o livro, pois se encontra emprestado."})
-            
+            return jsonify({"error": "Cannot delete the book because it is currently on loan."})
     except Error as e:
-        return jsonify({"erro":f"Falha ao deletar livro. Este livro provavelmente possui um registro de empréstimo, exclui-lo causaria inconsistência de dados."})
-        
+        return jsonify({"error": f"Failed to delete book. This book likely has loan records, deleting it would cause data inconsistency."})
     finally:
         if con.is_connected:
             cursor.close()
-            con.close()     
+            con.close()
 
-#Função para consultar empréstimos pendentes de usuario especifico
-def consulta_emprestimo_pendente_por_id_usuario(id_usuario):
+def get_pending_loans_by_user_id(user_id):
     try:
         global con
-        emprestimos = []
-        conectar_bd()
-        pesquisa_emprestimo = """SELECT 
-        usuario.nome_usuario,
-        livro.titulo_livro,
-        emprestimo.data_devolucao,
-        emprestimo.data_devolvido,
-        emprestimo.data_emprestimo
+        loans = []
+        connect_db()
+        query = """
+        SELECT 
+            usuario.nome_usuario,
+            livro.titulo_livro,
+            emprestimo.data_devolucao,
+            emprestimo.data_devolvido,
+            emprestimo.data_emprestimo
         FROM
             emprestimo
-        JOIN
-            usuario on emprestimo.id_usuario = usuario.id_usuario
-        JOIN
-            livro on emprestimo.id_livro = livro.id_livro
-        WHERE data_devolvido IS NULL and usuario.id_usuario = "%s" """
+        JOIN usuario ON emprestimo.id_usuario = usuario.id_usuario
+        JOIN livro ON emprestimo.id_livro = livro.id_livro
+        WHERE data_devolvido IS NULL AND usuario.id_usuario = %s
+        """
         cursor = con.cursor()
-        cursor.execute(pesquisa_emprestimo, (id_usuario,))
-        colunas = cursor.fetchall()
-        for coluna in colunas:
-            emprestimo = {
-                "nome_usr":coluna[0],
-                "titulo_livro":coluna[1],
-                "data_devolucao":coluna[2],
-                "data_devolvido":coluna[3],
-                "data_emprestimo":coluna[4]
+        cursor.execute(query, (user_id,))
+        rows = cursor.fetchall()
+        for row in rows:
+            loan = {
+                "user_name": row[0],
+                "book_title": row[1],
+                "due_date": row[2],
+                "returned_date": row[3],
+                "loan_date": row[4]
             }
-            emprestimos.append(emprestimo)
-            return emprestimos
-        
+            loans.append(loan)
+            return loans
     except Error as e:
-        return jsonify({"erro":f"Erro ao consultar empréstimos: {e}"})
+        return jsonify({"error": f"Error retrieving loans: {e}"})
     finally:
         if con.is_connected():
             cursor.close()
             con.close()
 
-def marca_data_de_devolvido_livro_por_id_usuario_e_id_livro(id_usuario, id_livro):
+def set_return_date(user_id, book_id):
     try:
         global con
-        conectar_bd()
-        data_atual = date.today()
-        marca_devolucao = """UPDATE emprestimo
-        SET data_devolvido = %s
-        WHERE id_usuario = %s and id_livro = %s;"""
+        connect_db()
+        today = date.today()
+        update_query = """UPDATE emprestimo SET data_devolvido = %s WHERE id_usuario = %s AND id_livro = %s"""
         cursor = con.cursor()
-        cursor.execute(marca_devolucao, (data_atual, id_usuario, id_livro))
+        cursor.execute(update_query, (today, user_id, book_id))
         con.commit()
     except Error as e:
-        print(f"Erro ao executar devolução: {e}")
+        print(f"Error executing return: {e}")
         return
-
     finally:
         if con.is_connected():
             cursor.close()
