@@ -1,7 +1,3 @@
-import db
-from db import con
-from mysql.connector import Error
-
 class Book:
     title: str
     author: str

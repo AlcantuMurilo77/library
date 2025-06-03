@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-  fetch('http://localhost:5000/listarusuarios')
+  fetch('http://localhost:5000/listusers')
     .then(response => response.json())
     .then(data => {
       const userList = document.getElementById("userList");
@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       data.forEach(user => {
         let li = document.createElement("li");
-        li.textContent = `ID: ${user.id} - Name: ${user.nome}`;
+        li.textContent = `ID: ${user.id} - Name: ${user.name}`;
         userList.appendChild(li);
       });
     })

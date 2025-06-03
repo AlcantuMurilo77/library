@@ -14,13 +14,13 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       const book = {
-          titulo: title,
-          autor: author,
-          ano: year
+          title: title,
+          author: author,
+          year: year
       };
 
       try {
-          const response = await fetch("http://127.0.0.1:5000/cadastrarlivro", {
+          const response = await fetch("http://127.0.0.1:5000/addbook", {
               method: "POST",
               headers: {
                   "Content-Type": "application/json"
