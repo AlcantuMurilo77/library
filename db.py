@@ -142,13 +142,13 @@ def get_book_by_id(book_id):
             row = cursor.fetchone()
             if not row:
                 return None
-            book = library.Livro(row["titulo_livro"], row["autor_livro"], row["ano_livro"], row["id_livro"], disponivel=row["disponivel_livro"])
+            book = library.Book(row["titulo_livro"], row["autor_livro"], row["ano_livro"], row["id_livro"], available=row["disponivel_livro"])
             return jsonify({
                 "id": book.id,
-                "title": book.titulo,
-                "author": book.autor,
-                "year": book.ano,
-                "available": book.disponivel
+                "title": book.title,
+                "author": book.author,
+                "year": book.year,
+                "available": book.available
             })
     except Error as e:
         print(f"Database error: {e}")

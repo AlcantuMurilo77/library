@@ -58,7 +58,7 @@ def search_book():
             return jsonify({"error": "Invalid data", "details": err.messages}), 400
         
         book_id = book_id.get("id")
-        result = db.find_book_by_id(book_id)
+        result = db.get_book_by_id(book_id)
         
         if result is None:
             return jsonify({"error": "Book not found"}), 404
@@ -90,7 +90,7 @@ def borrow_book():
         if db.find_user_by_id(user_id) is None:
             return jsonify({"error": "User not found"}), 404
         
-        if db.find_book_by_id(book_id) is None:
+        if db.get_book_by_id(book_id) is None:
             return jsonify({"error": "Book not found"}), 404
 
         if not db.is_book_available(book_id):
@@ -125,7 +125,7 @@ def return_book():
         if db.find_user_by_id(user_id) is None:
             return jsonify({"error": "User not found"}), 404
 
-        book_data = db.find_book_by_id(book_id)
+        book_data = db.get_book_by_id(book_id)
         if isinstance(book_data, Response):
             book_data = book_data.get_json()
 
