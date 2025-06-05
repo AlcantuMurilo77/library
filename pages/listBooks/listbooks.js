@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-  fetch("http://localhost:5000/listarlivros")
+  fetch("http://localhost:5000/listbooks")
     .then(response => response.json())
     .then(data => {
       const bookTable = document.getElementById("bookTable");
@@ -14,10 +14,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         row.innerHTML = `
           <td>${book.id}</td>
-          <td>${book.titulo}</td>
-          <td>${book.autor}</td>
-          <td>${book.ano}</td>
-          <td>${book.disponivel ? "Yes" : "No"}</td>
+          <td>${book.title}</td>
+          <td>${book.author}</td>
+          <td>${book.year}</td>
+          <td>${book.available ? "Yes" : "No"}</td>
         `;
 
         bookTable.appendChild(row);
