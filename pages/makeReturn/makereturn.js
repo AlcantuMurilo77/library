@@ -4,8 +4,8 @@ document.addEventListener("DOMContentLoaded", function () {
   form.addEventListener("submit", async function (event) {
     event.preventDefault();
 
-    const userId = document.getElementById("idUsuario").value.trim();
-    const bookId = document.getElementById("idLivro").value.trim();
+    const userId = document.getElementById("userId").value.trim();
+    const bookId = document.getElementById("bookId").value.trim();
 
     if (!userId || !bookId) {
       alert("Please fill in both fields.");

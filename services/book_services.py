@@ -126,7 +126,7 @@ def return_book():
         
         book_id = book_id.get("id")
 
-        if db.find_user_by_id(user_id) is None:
+        if db.get_user_by_id(user_id) is None:
             return jsonify({"error": "User not found"}), 404
 
         book_data = db.get_book_by_id(book_id)
@@ -136,17 +136,17 @@ def return_book():
         if book_data is None:
             return jsonify({"error": "Book not found"}), 404
 
-        user_borrows = db.find_user_pending_borrows(user_id)
+        user_borrows = db.get_pending_loans_by_user_id(user_id)
         matched = None
         for borrow in user_borrows:
-            if book_data['title'].lower() == borrow['book_title'].lower():
+            if book_data.title.lower() == borrow['book_title'].lower():
                 matched = borrow['book_title'].lower()
 
         if matched is None:
             return jsonify({"error": "Book was not borrowed by this user or has already been returned."}), 409
 
-        db.mark_book_returned(user_id, book_id)
-        result = db.set_book_available(book_id)
+        db.set_return_date(user_id, book_id)
+        result = db.make_book_available(book_id)
         return result, 201
 
     except Exception as e:
