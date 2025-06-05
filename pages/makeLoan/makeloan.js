@@ -10,11 +10,11 @@ document.getElementById("makeLoan").addEventListener("submit", function(event) {
   }
 
   const data = {
-      id_usuario: userId,
-      id_livro: bookId
+      user_id: userId,
+      book_id: bookId
   };
 
-  fetch('http://localhost:5000/emprestarlivro', {
+  fetch('http://localhost:5000/borrowbook', {
       method: "POST",
       headers: {
           "Content-Type": "application/json"

@@ -72,6 +72,9 @@ def borrow_book():
     try:
         data = request.get_json()
 
+        if not data:
+            return jsonify({"error": "Missing or invalid JSON body"}), 400
+
         id_schema = utils.IDSchema()
         try:
             user_id = id_schema.load({"id": data.get("user_id")})
@@ -87,19 +90,20 @@ def borrow_book():
 
         book_id = book_id.get("id")
 
-        if db.find_user_by_id(user_id) is None:
+        if db.get_user_by_id(user_id) is None:
             return jsonify({"error": "User not found"}), 404
         
         if db.get_book_by_id(book_id) is None:
             return jsonify({"error": "Book not found"}), 404
 
-        if not db.is_book_available(book_id):
+        if not db.check_book_availability(book_id):
             return jsonify({"error": "Book is not available for borrowing"}), 409
         
-        result = db.insert_borrow(book_id, user_id)
-        return result, 201
+        return(db.insert_loan(book_id, user_id))
+
         
     except Exception as e:
+
         return jsonify({"error": f"Unexpected error: {e}"}), 500
     
 

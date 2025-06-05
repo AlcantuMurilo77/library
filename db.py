@@ -65,10 +65,10 @@ def insert_loan(book_id, user_id):
 
             update_query = """UPDATE livro SET disponivel_livro = 0 WHERE id_livro = ?"""
             con.execute(update_query, (book_id,))
-        return jsonify({"message": "Loan successfully registered!"})
+        return jsonify({"message": "Loan successfully registered!"}), 201
     except Error as e:
         print("Failed to insert data into the DB: ", e)
-        return
+        return jsonify({"error": f"Failed to insert loan: {e}"}), 500
     finally:
         if con:
             con.close()
@@ -99,7 +99,7 @@ def get_user_by_id(user_id: int):
             cursor = con.execute(query, (user_id,))
             row = cursor.fetchone()
             if row:
-                return library.Usuario(nome=row["nome_usuario"], id=row["id_usuario"])
+                return library.User(name=row["nome_usuario"], id=row["id_usuario"])
             else:
                 return None
     except Error as e:
@@ -143,13 +143,7 @@ def get_book_by_id(book_id):
             if not row:
                 return None
             book = library.Book(row["titulo_livro"], row["autor_livro"], row["ano_livro"], row["id_livro"], available=row["disponivel_livro"])
-            return jsonify({
-                "id": book.id,
-                "title": book.title,
-                "author": book.author,
-                "year": book.year,
-                "available": book.available
-            })
+            return book
     except Error as e:
         print(f"Database error: {e}")
         return None
